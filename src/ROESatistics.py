@@ -6,7 +6,12 @@ import pandas as pd
 import numpy as np
 import tushare as ts
 import time
+import globalSetting as gs
 
+
+THIS_MODULE = 'ROESatistics'
+
+dirfix= gs.g_data_dir + THIS_MODULE + gs.g_dir_separator
 
 def get_years_report(start_year, end_year):
     if(start_year > end_year):
@@ -82,23 +87,24 @@ def get_target_data(start_year, end_year, roe):
         start_year = end_year
         end_year = tmp
 
-    exclefile = str(start_year) + '-' + str(end_year) + '-filter-only-' + 'ROE' + '.xlsx'
+    exclefile = dirfix + str(start_year) + '-' + str(end_year) + '-filter-only-' + 'ROE' + '.xlsx'
     df = pd.read_excel(exclefile)
     columns = df.columns.values.tolist()
     if len(columns) < 2+1:
         return
 
-    calibrate_data = df[columns[2]]
+    calibrate_data = ((df[columns[2]] >= roe) & (df[columns[2]] == df[columns[2]]))
+    #calibrate_data = df[columns[2]] #erorr:need set true or false to compare
     for i in range(len(columns)):
         if i == 2:
             pass
         elif i > 2:
-            calibrate_data = ((df[columns[i]] > roe) | (df[columns[i]] != df[columns[i]])) & calibrate_data
+            calibrate_data = ((df[columns[i]] >= roe) | (df[columns[i]] != df[columns[i]])) & calibrate_data
         else:
             pass
 
     #print(df[calibrate_data])
-    exclefile = str(start_year) + '-' + str(end_year) + '-target-' + str(roe) + 'ROE' + '.xlsx'
+    exclefile = str(start_year) + '-' + str(end_year) + '-target-' + str(roe) + '-ROE' + '.xlsx'
     df[calibrate_data].to_excel(exclefile)
     pass
 
@@ -107,11 +113,11 @@ def main():
     start = 2006
     end = 2018
     # 获得数据
-    get_years_report(start, end)
+    #get_years_report(start, end)
     # 开始合并数据
-    merge_report(start, end)
+    #merge_report(start, end)
     # 获取有用数据
-    deal_merged_report(start, end)
+    #deal_merged_report(start, end)
     # 筛选数据
     get_target_data(start, end, 15)
     pass
